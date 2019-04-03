@@ -25,12 +25,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,9 +82,16 @@ public class CameraExportAction extends PluginAction {
 			final List<String> csvTextList = new ArrayList<String>();
 			csvTextList.add("#name,x,y,z,pitch,yaw,fov,time");
 			for (Camera storedCamera: home.getStoredCameras()) {
-				final Instant instant = Instant.ofEpochMilli ( storedCamera.getTime());
-				final ZonedDateTime zdt = ZonedDateTime.ofInstant ( instant , ZoneOffset.systemDefault());
+				
 				final boolean isObsever = storedCamera instanceof ObserverCamera;
+				
+				final String timeZone = home.getCompass().getTimeZone();
+				// This new DateTime stuff is diabolically generalised and not always intuitive.
+				final Instant instant = Instant.ofEpochMilli(storedCamera.getTime());
+				final ZonedDateTime zdt = instant.atZone(ZoneOffset.UTC).withZoneSameLocal(ZoneId.of(timeZone));
+				final String dateTimeString = zdt.toString();				
+				System.out.println(storedCamera.getName() + " ctime=" + storedCamera.getTime() + " Instant=" + instant.toEpochMilli() + " " + dateTimeString);
+
 				final String line = 
 						storedCamera.getName() + "," +
 								storedCamera.getX() + "," +
@@ -93,7 +100,7 @@ public class CameraExportAction extends PluginAction {
 								radiansToDegrees(storedCamera.getPitch()) + "," +
 								radiansToDegrees(storedCamera.getYaw()) + "," +
 								radiansToDegrees(storedCamera.getFieldOfView()) + "," +
-								CameraImportAction.TIME_FORMAT.format(zdt) + "," +
+								dateTimeString + "," +
 								storedCamera.getLens() + "," +
 								(isObsever ? "observer" : "topview");
 				csvTextList.add(line);
@@ -117,5 +124,14 @@ public class CameraExportAction extends PluginAction {
 		return Math.round(Math.toDegrees(r)) % 360;
 	}
 
+	public static void main(String args[]) {
+		long time = System.currentTimeMillis();
+		Instant instant = Instant.ofEpochMilli(time);
+		OffsetDateTime odt = OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
+		String str = odt.toString();
+		OffsetDateTime odt2 = OffsetDateTime.parse(str);
+		long time2 = odt2.toInstant().toEpochMilli();
+		System.out.println("t1=" + time + " t2=" + time2 + " " + (new Date(time)).toGMTString());
+	}
 }
 

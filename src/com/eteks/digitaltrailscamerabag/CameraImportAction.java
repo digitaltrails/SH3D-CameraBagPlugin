@@ -25,10 +25,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,8 +46,6 @@ import com.eteks.sweethome3d.plugin.PluginAction;
 
 public class CameraImportAction extends PluginAction {
 	
-	public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS XXXX");
-
 	private final CameraBagPlugin context;
 
 	public CameraImportAction(CameraBagPlugin context) {
@@ -124,9 +121,16 @@ public class CameraImportAction extends PluginAction {
 						pitch = degreesToRadians(Float.parseFloat(values[i++]));
 						yaw = degreesToRadians(Float.parseFloat(values[i++]));
 						fov = degreesToRadians(Float.parseFloat(values[i++]));
-						final ZonedDateTime zdt = ZonedDateTime.parse(values[i++], TIME_FORMAT);
-						final long time = zdt.toInstant().toEpochMilli();
-						final Lens lens = Camera.Lens.valueOf(values[i++]);						
+						final ZonedDateTime zdt = ZonedDateTime.parse(values[i++]);
+						
+						// Convert local zone date-time back to UTC and then extract the millis
+						// The javadoc states that the conversion only happens "if possible",
+						// hopefully UTC must always be possible.
+						final long time = Instant.from(zdt.withZoneSameLocal(ZoneOffset.UTC)).toEpochMilli();
+						System.out.println(name + " time=" + zdt);
+						
+						final Lens lens = Camera.Lens.valueOf(values[i++]);		
+						
 						final boolean isObserverCamera = values[i++].startsWith("observer");
 						Camera camera = isObserverCamera ? 
 								new ObserverCamera(x, y, z, yaw, pitch, fov) :
