@@ -1,7 +1,7 @@
 # SH3D-CameraBagPlugin
-## CameraBagPlugin - Export/Import Cameras (Points of View)
+## CameraBagPlugin for SweetHome3D - Export/Import Cameras (Points of View)
 
-The CameraBagPlugin (as in bag for carrying cameras) adds two menu items to the tools menu:
+The SweetHome3D CameraBagPlugin (as in bag for carrying cameras) adds two menu items to the tools menu:
 - Export Cameras - exports all saved points of view to a CSV file
 - Import Cameras - imports points of view from a CSV file, possible overwriting existing ones with the same name
 
