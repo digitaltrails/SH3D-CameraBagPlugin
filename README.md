@@ -27,3 +27,7 @@ Being a new plugin it might be wise to initially treat with some caution - for e
 
 ## Development:
 - See [SweetHome3D - Plug-in developer's guide](https://www.sweethome3d.com/pluginDeveloperGuide.jsp)
+
+## SourceForge SweetHome3D plugin submission link
+
+[https://sourceforge.net/p/sweethome3d/plug-ins/25/](https://sourceforge.net/p/sweethome3d/plug-ins/25/)
