@@ -42,52 +42,29 @@ import com.eteks.sweethome3d.model.Camera.Lens;
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.ObserverCamera;
 import com.eteks.sweethome3d.plugin.PluginAction;
+import com.eteks.sweethome3d.plugin.PluginAction.Property;
 
 
 public class CameraImportAction extends PluginAction {
-	
+
+	private static final int NUMBER_OF_COLUMNS = 11;
 	private final CameraBagPlugin context;
 
 	public CameraImportAction(CameraBagPlugin context) {
 		this.context = context;
 		putPropertyValue(Property.NAME, Local.str("CameraBag.importMenuEntry"));
-		putPropertyValue(Property.MENU, "Tools");
+		putPropertyValue(Property.MENU, Local.str("CameraBag.targetMenu"));
 		setEnabled(true);
 	}
 
 	@Override
 	public void execute() {
 		final Home home = context.getHome();
-		try {
-			importCameras(home);
-		} 
-		catch (IOException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(
-					null, 
-					Local.str("CameraBag.importError", e.getMessage()),
-					Local.str("CameraBag.importDialogTitle"),
-					JOptionPane.ERROR_MESSAGE);
-		}
-		catch (NumberFormatException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(
-					null, 
-					Local.str("CameraBag.importError", e.getMessage()),
-					Local.str("CameraBag.importDialogTitle"),
-					JOptionPane.ERROR_MESSAGE);
-		}
-		catch (DateTimeParseException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(
-					null, 
-					Local.str("CameraBag.importError", e.getMessage()),
-					Local.str("CameraBag.importDialogTitle"),
-					JOptionPane.ERROR_MESSAGE);
-		}
+		importCameras(home);
+
 	}
 
-	public void importCameras(final Home home) throws IOException {
+	public void importCameras(final Home home) {
 
 		final JFileChooser chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -96,9 +73,22 @@ public class CameraImportAction extends PluginAction {
 		final int returnValue = chooser.showOpenDialog(null);
 
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
-			Path inPath = Paths.get(chooser.getSelectedFile().getAbsolutePath());
+			final List<String> lines;
 
-			final List<String> lines = Files.readAllLines(inPath, Charset.defaultCharset());
+			Path inPath = Paths.get(chooser.getSelectedFile().getAbsolutePath());
+			try {
+				System.out.println("import from: " + inPath.toAbsolutePath());
+				lines = Files.readAllLines(inPath, Charset.defaultCharset());
+			} 
+			catch (IOException e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(
+						null, 
+						Local.str("CameraBag.importIOError", e.getMessage()),
+						Local.str("CameraBag.importDialogTitle"),
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 
 			final Map<String, Camera> camerasByName = new LinkedHashMap<String, Camera>();
 
@@ -106,52 +96,95 @@ public class CameraImportAction extends PluginAction {
 				camerasByName.put(camera.getName(),camera);
 			}
 
+			long lineCount = 0;
 			for (String line: lines) {
-				if (!line.startsWith("#")) {
-					final String[] values = line.split(",");
-					if (values.length == 10) {
-						final String name;
-						final float x, y, z;
-						final float pitch, yaw, fov;
-						int i = 0;
-						name = values[i++];
-						x = Float.parseFloat(values[i++]);
-						y = Float.parseFloat(values[i++]);
-						z = Float.parseFloat(values[i++]);
-						pitch = degreesToRadians(Float.parseFloat(values[i++]));
-						yaw = degreesToRadians(Float.parseFloat(values[i++]));
-						fov = degreesToRadians(Float.parseFloat(values[i++]));
-						final ZonedDateTime zdt = ZonedDateTime.parse(values[i++]);
-						
-						// Convert local zone date-time back to UTC and then extract the millis
-						// The javadoc states that the conversion only happens "if possible",
-						// hopefully UTC must always be possible.
-						final long time = Instant.from(zdt.withZoneSameLocal(ZoneOffset.UTC)).toEpochMilli();
-						System.out.println(name + " time=" + zdt);
-						
-						final Lens lens = Camera.Lens.valueOf(values[i++]);		
-						
-						final boolean isObserverCamera = values[i++].startsWith("observer");
-						Camera camera = isObserverCamera ? 
-								new ObserverCamera(x, y, z, yaw, pitch, fov) :
-								new Camera(x, y, z, yaw, pitch, fov);
-						camera.setName(name);
-						camera.setTime(time);
-						camera.setLens(lens);
-						camerasByName.put(name, camera);
+				lineCount++;
+				String name = "'not named'";
+				try {
+					if (!line.startsWith("#")) {
+						final String[] values = line.split(",");
+						if (values.length == NUMBER_OF_COLUMNS) {
+							final float x, y, z;
+							final float pitch, yaw, fov;
+							int i = 0;
+							name = values[i++];
+							x = Float.parseFloat(values[i++]);
+							y = Float.parseFloat(values[i++]);
+							z = Float.parseFloat(values[i++]);
+							pitch = degreesToRadians(Float.parseFloat(values[i++]));
+							yaw = degreesToRadians(Float.parseFloat(values[i++]));
+							fov = degreesToRadians(Float.parseFloat(values[i++]));
+							final ZonedDateTime zdt = ZonedDateTime.parse(values[i++]);
+
+							// Convert local zone date-time back to UTC and then extract the millis
+							// The javadoc states that the conversion only happens "if possible",
+							// hopefully UTC must always be possible.
+							final long time = Instant.from(zdt.withZoneSameLocal(ZoneOffset.UTC)).toEpochMilli();
+							System.out.println(name + " time=" + zdt);
+
+							final Lens lens = Camera.Lens.valueOf(values[i++]);		
+
+							final boolean isObserverCamera = values[i++].startsWith("observer");
+							final Camera camera = isObserverCamera ? new ObserverCamera(x, y, z, yaw, pitch, fov) : new Camera(x, y, z, yaw, pitch, fov);
+
+							if (isObserverCamera) {
+								((ObserverCamera) camera).setFixedSize(values[i++].equals("fixedSize"));
+							}
+							camera.setName(name);
+							camera.setTime(time);
+							camera.setLens(lens);
+							camerasByName.put(name, camera);
+						} 
+						else {
+							JOptionPane.showMessageDialog(
+									null, 
+									Local.str("CameraBag.importNumColError", lineCount, NUMBER_OF_COLUMNS, values.length),
+									Local.str("CameraBag.importDialogTitle"),
+									JOptionPane.ERROR_MESSAGE);
+						}
 					}
 				}
+				catch (NumberFormatException e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(
+							null, 
+							Local.str("CameraBag.importNumericError", lineCount, name, e.getMessage()),
+							Local.str("CameraBag.importDialogTitle"),
+							JOptionPane.ERROR_MESSAGE);
+				}
+				catch (DateTimeParseException e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(
+							null, 
+							Local.str("CameraBag.importTimeError", lineCount, name, e.getMessage()),
+							Local.str("CameraBag.importDialogTitle"),
+							JOptionPane.ERROR_MESSAGE);
+				}
+
 			}
+
 			final ArrayList<Camera> storedCameras = new ArrayList<Camera>(camerasByName.values());
 			if (storedCameras.size() > context.getUserPreferences().getStoredCamerasMaxCount()) {
-				home.setStoredCameras(new ArrayList<Camera>(storedCameras.subList(0, 50)));
-				JOptionPane.showMessageDialog(
-						null, 
+				int choice = JOptionPane.showConfirmDialog(null, 
 						Local.str(
-								"CameraBag.importedTooManyCameras", 
+								"CameraBag.importIgnoreMaxCameraLimit", 
 								context.getUserPreferences().getStoredCamerasMaxCount()), 
-						Local.str("CameraBag.importDialogTitle"), 
-						JOptionPane.ERROR_MESSAGE);
+						Local.str("CameraBag.importDialogTitle"),
+						JOptionPane.YES_NO_CANCEL_OPTION);
+
+				if (choice == JOptionPane.YES_OPTION) {
+					home.setStoredCameras(storedCameras);
+				}
+				else if (choice == JOptionPane.NO_OPTION){
+					home.setStoredCameras(new ArrayList<Camera>(storedCameras.subList(0, 50)));
+					JOptionPane.showMessageDialog(
+							null, 
+							Local.str(
+									"CameraBag.importedTooManyCameras", 
+									context.getUserPreferences().getStoredCamerasMaxCount()), 
+							Local.str("CameraBag.importDialogTitle"), 
+							JOptionPane.ERROR_MESSAGE);
+				}
 			}
 			else {
 				home.setStoredCameras(storedCameras);
@@ -165,11 +198,10 @@ public class CameraImportAction extends PluginAction {
 			}
 		}
 	}
+	
 	private static float degreesToRadians(float d) {
 		return (float) ((double) d * (Math.PI / 180.0));
 	}
-
 	
-
 }
 

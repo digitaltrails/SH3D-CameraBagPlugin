@@ -50,7 +50,7 @@ public class CameraExportAction extends PluginAction {
 	public CameraExportAction(CameraBagPlugin context) {
 		this.context = context;
 		putPropertyValue(Property.NAME, Local.str("CameraBag.exportMenuEntry"));
-		putPropertyValue(Property.MENU, "Tools");
+		putPropertyValue(Property.MENU, Local.str("CameraBag.targetMenu"));
 		setEnabled(true);
 	}
 
@@ -80,10 +80,11 @@ public class CameraExportAction extends PluginAction {
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
 			Path out = Paths.get(chooser.getSelectedFile().getAbsolutePath());
 			final List<String> csvTextList = new ArrayList<String>();
-			csvTextList.add("#name,x,y,z,pitch,yaw,fov,time");
+			csvTextList.add("#name,x,y,z,pitch,yaw,fov,time,cameraType,viewType,observerSizeType");
 			for (Camera storedCamera: home.getStoredCameras()) {
 				
 				final boolean isObsever = storedCamera instanceof ObserverCamera;
+				final boolean isFixedSize = (storedCamera instanceof ObserverCamera) ? ((ObserverCamera) storedCamera).isFixedSize() : false;
 				
 				final String timeZone = home.getCompass().getTimeZone();
 				// This new DateTime stuff is diabolically generalised and not always intuitive.
@@ -102,7 +103,8 @@ public class CameraExportAction extends PluginAction {
 								radiansToDegrees(storedCamera.getFieldOfView()) + "," +
 								dateTimeString + "," +
 								storedCamera.getLens() + "," +
-								(isObsever ? "observer" : "topview");
+								(isObsever ? "observer" : "topview") + "," +
+								(isFixedSize ? "fixedSize" : "variableSize");
 				csvTextList.add(line);
 			}
 			Files.write(out,csvTextList,Charset.defaultCharset());
