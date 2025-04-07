@@ -42,7 +42,6 @@ import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.ObserverCamera;
 import com.eteks.sweethome3d.plugin.PluginAction;
 
-
 public class CameraExportAction extends PluginAction {
 
 	private final CameraBagPlugin context;
@@ -50,6 +49,7 @@ public class CameraExportAction extends PluginAction {
 	public CameraExportAction(CameraBagPlugin context) {
 		this.context = context;
 		putPropertyValue(Property.NAME, Local.str("CameraBag.exportMenuEntry"));
+//		putPropertyValue(Property.MENU, "Tools");
 		putPropertyValue(Property.MENU, Local.str("CameraBag.targetMenu"));
 		setEnabled(true);
 	}

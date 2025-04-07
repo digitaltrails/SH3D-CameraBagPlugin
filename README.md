@@ -21,6 +21,12 @@ Of those listed the time (date-time) is most useful. I use it to quickly generat
 
 Being a new plugin it might be wise to initially treat with some caution - for example, you could refrain from saving a model that you've imported cameras into (that would be very safe).
 
+## Acknowledgements
+
+ - [xlance](https://sourceforge.net/u/xlance/profile/) for validation enhancements
+   and the related [Camera Data Generator](https://sourceforge.net/p/sweethome3d/plug-ins/55/)
+ - [Olivier](https://sourceforge.net/u/z56oo/profile/) for assistance with internationalization, fixes, and testing.
+
 ## Requirements:
 - [SweetHome3D](https://www.sweethome3d.com/) > 1.5
 - Java/JDK >= 1.8
