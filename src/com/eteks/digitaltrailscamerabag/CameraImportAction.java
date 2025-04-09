@@ -89,17 +89,26 @@ public class CameraImportAction extends PluginAction {
                 String name = "'not named'";
                 try {
                     if (!line.startsWith("#")) {
+
                         if (sep == null) {
-                            if (line.split(",").length == NUMBER_OF_COLUMNS) {
+                            final int count_commas = line.split(",").length;
+                            final int count_semicolons = line.split(";").length;
+                            if (count_commas == NUMBER_OF_COLUMNS) {
                                 sep = ",";
                             }
-                            else if (line.split(";").length == NUMBER_OF_COLUMNS) {
+                            else if (count_semicolons == NUMBER_OF_COLUMNS) {
                                 sep = ";";
                             }
-                            else {
+                            else if (count_commas > count_semicolons) { // Have a guess
+                                sep = ",";
+                            }
+                            else if (count_commas < count_semicolons) {
+                                sep = ";";
+                            }
+                            else {  // Too messed up to continue
                                 JOptionPane.showMessageDialog(
                                     null,
-                                    Local.str("CameraBag.importIOError", 'CSV invalid number of columns'),
+                                    Local.str("CameraBag.importBadSeparators %d", NUMBER_OF_COLUMNS),
                                     Local.str("CameraBag.importDialogTitle"),
                                     JOptionPane.ERROR_MESSAGE);
                                 break;
