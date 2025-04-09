@@ -42,7 +42,6 @@ import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.ObserverCamera;
 import com.eteks.sweethome3d.plugin.PluginAction;
 
-
 public class CameraExportAction extends PluginAction {
 
 	private final CameraBagPlugin context;
@@ -50,6 +49,7 @@ public class CameraExportAction extends PluginAction {
 	public CameraExportAction(CameraBagPlugin context) {
 		this.context = context;
 		putPropertyValue(Property.NAME, Local.str("CameraBag.exportMenuEntry"));
+//		putPropertyValue(Property.MENU, "Tools");
 		putPropertyValue(Property.MENU, Local.str("CameraBag.targetMenu"));
 		setEnabled(true);
 	}
@@ -71,10 +71,10 @@ public class CameraExportAction extends PluginAction {
 	}
 
 	public void exportCameras(final Home home) throws IOException {
-		final JFileChooser chooser = new JFileChooser();
+		final JFileChooser chooser = new JFileChooser(System.getProperty("user.home"));
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setSelectedFile(new File("cameras.csv"));
-		chooser.setDialogTitle(Local.str("CameraBag.exportDialogTitle"));
+		chooser.setDialogTitle(Local.str("CameraBag.exportDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
 		final int returnValue = chooser.showSaveDialog(null);
 
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
@@ -113,7 +113,7 @@ public class CameraExportAction extends PluginAction {
 					Local.str(
 							"CameraBag.exportSuccess",
 							csvTextList.size() - 1), 
-					Local.str("CameraBag.importDialogTitle"), 
+					Local.str("CameraBag.exportDialogTitle"), 
 					JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
