@@ -19,8 +19,11 @@ viewType,
 ```
 Of those listed the time (date-time) is most useful. I use it to quickly generate multiple versions of the same viewpoint for different days of the year (in order to examine sun/shading issues). The date-time is exported for the local zone. Fov (field of view) is in degrees.
 
+<<<<<<< HEAD
 On import either comma or semicolon delimited CVS is accepted.  The CSV parser performs a simple split on the delimiter, it does not accept escaped delimiters
 
+=======
+>>>>>>> b1eda5bb51c7f1975aa2549d2eaccbc71839b4d7
 Being a new plugin it might be wise to initially treat with some caution - for example, you could refrain from saving a model that you've imported cameras into (that would be very safe).
 
 ## Acknowledgements

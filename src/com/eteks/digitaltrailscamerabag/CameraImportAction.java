@@ -96,6 +96,14 @@ public class CameraImportAction extends PluginAction {
                             else if (line.split(";").length == NUMBER_OF_COLUMNS) {
                                 sep = ";";
                             }
+                            else {
+                                JOptionPane.showMessageDialog(
+                                    null,
+                                    Local.str("CameraBag.importIOError", 'CSV invalid number of columns'),
+                                    Local.str("CameraBag.importDialogTitle"),
+                                    JOptionPane.ERROR_MESSAGE);
+                                break;
+                            }
                         }
                         final String[] values = line.split(sep);
                         if (values.length == NUMBER_OF_COLUMNS) {

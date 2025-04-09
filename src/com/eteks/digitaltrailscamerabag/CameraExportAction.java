@@ -44,96 +44,94 @@ import com.eteks.sweethome3d.plugin.PluginAction;
 
 public class CameraExportAction extends PluginAction {
 
-	private final CameraBagPlugin context;
+    private final CameraBagPlugin context;
 
-	public CameraExportAction(CameraBagPlugin context) {
-		this.context = context;
-		putPropertyValue(Property.NAME, Local.str("CameraBag.exportMenuEntry"));
-//		putPropertyValue(Property.MENU, "Tools");
-		putPropertyValue(Property.MENU, Local.str("CameraBag.targetMenu"));
-		setEnabled(true);
-	}
+    public CameraExportAction(CameraBagPlugin context) {
+        this.context = context;
+        putPropertyValue(Property.NAME, Local.str("CameraBag.exportMenuEntry"));
+        putPropertyValue(Property.MENU, Local.str("CameraBag.targetMenu"));
+        setEnabled(true);
+    }
 
-	@Override
-	public void execute() {
-		final Home home = context.getHome();
-		try {
-			exportCameras(home);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(
-					null, 
-					Local.str("CameraBag.exportError", e.getMessage()),
-					Local.str("CameraBag.exportDialogTitle"),
-					JOptionPane.ERROR_MESSAGE);
-		}
-	}
+    @Override
+    public void execute() {
+        final Home home = context.getHome();
+        try {
+            exportCameras(home);
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                    null,
+                    Local.str("CameraBag.exportError", e.getMessage()),
+                    Local.str("CameraBag.exportDialogTitle"),
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-	public void exportCameras(final Home home) throws IOException {
-		final JFileChooser chooser = new JFileChooser(System.getProperty("user.home"));
-		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		chooser.setSelectedFile(new File("cameras.csv"));
-		chooser.setDialogTitle(Local.str("CameraBag.exportDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
-		final int returnValue = chooser.showSaveDialog(null);
+    public void exportCameras(final Home home) throws IOException {
+        final JFileChooser chooser = new JFileChooser(System.getProperty("user.home"));
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setSelectedFile(new File("cameras.csv"));
+        chooser.setDialogTitle(Local.str("CameraBag.exportDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
+        final int returnValue = chooser.showSaveDialog(null);
 
-		if (returnValue == JFileChooser.APPROVE_OPTION) {
-			Path out = Paths.get(chooser.getSelectedFile().getAbsolutePath());
-			final List<String> csvTextList = new ArrayList<String>();
-			csvTextList.add("#name,x,y,z,pitch,yaw,fov,time,cameraType,viewType,observerSizeType");
-			for (Camera storedCamera: home.getStoredCameras()) {
-				
-				final boolean isObsever = storedCamera instanceof ObserverCamera;
-				final boolean isFixedSize = (storedCamera instanceof ObserverCamera) ? ((ObserverCamera) storedCamera).isFixedSize() : false;
-				
-				final String timeZone = home.getCompass().getTimeZone();
-				// This new DateTime stuff is diabolically generalised and not always intuitive.
-				final Instant instant = Instant.ofEpochMilli(storedCamera.getTime());
-				final ZonedDateTime zdt = instant.atZone(ZoneOffset.UTC).withZoneSameLocal(ZoneId.of(timeZone));
-				final String dateTimeString = zdt.toString();				
-				System.out.println(storedCamera.getName() + " ctime=" + storedCamera.getTime() + " Instant=" + instant.toEpochMilli() + " " + dateTimeString);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            Path out = Paths.get(chooser.getSelectedFile().getAbsolutePath());
+            final List<String> csvTextList = new ArrayList<String>();
+            csvTextList.add("#name,x,y,z,pitch,yaw,fov,time,cameraType,viewType,observerSizeType");
+            for (Camera storedCamera: home.getStoredCameras()) {
 
-				final String line = 
-						storedCamera.getName() + "," +
-								storedCamera.getX() + "," +
-								storedCamera.getY() + "," +
-								storedCamera.getZ() + "," +
-								radiansToDegrees(storedCamera.getPitch()) + "," +
-								radiansToDegrees(storedCamera.getYaw()) + "," +
-								radiansToDegrees(storedCamera.getFieldOfView()) + "," +
-								dateTimeString + "," +
-								storedCamera.getLens() + "," +
-								(isObsever ? "observer" : "topview") + "," +
-								(isFixedSize ? "fixedSize" : "variableSize");
-				csvTextList.add(line);
-			}
-			Files.write(out,csvTextList,Charset.defaultCharset());
-			JOptionPane.showMessageDialog(
-					null, 
-					Local.str(
-							"CameraBag.exportSuccess",
-							csvTextList.size() - 1), 
-					Local.str("CameraBag.exportDialogTitle"), 
-					JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
+                final boolean isObsever = storedCamera instanceof ObserverCamera;
+                final boolean isFixedSize = (storedCamera instanceof ObserverCamera) ? ((ObserverCamera) storedCamera).isFixedSize() : false;
 
-	private static float radiansToDegrees(float r) {
-		return radiansToDegrees((double) r);
-	}
+                final String timeZone = home.getCompass().getTimeZone();
+                // This new DateTime stuff is diabolically generalised and not always intuitive.
+                final Instant instant = Instant.ofEpochMilli(storedCamera.getTime());
+                final ZonedDateTime zdt = instant.atZone(ZoneOffset.UTC).withZoneSameLocal(ZoneId.of(timeZone));
+                final String dateTimeString = zdt.toString();
+                System.out.println(storedCamera.getName() + " ctime=" + storedCamera.getTime() + " Instant=" + instant.toEpochMilli() + " " + dateTimeString);
 
-	private static float radiansToDegrees(double r) {
-		return Math.round(Math.toDegrees(r)) % 360;
-	}
+                final String line =
+                        storedCamera.getName() + "," +
+                                storedCamera.getX() + "," +
+                                storedCamera.getY() + "," +
+                                storedCamera.getZ() + "," +
+                                radiansToDegrees(storedCamera.getPitch()) + "," +
+                                radiansToDegrees(storedCamera.getYaw()) + "," +
+                                radiansToDegrees(storedCamera.getFieldOfView()) + "," +
+                                dateTimeString + "," +
+                                storedCamera.getLens() + "," +
+                                (isObsever ? "observer" : "topview") + "," +
+                                (isFixedSize ? "fixedSize" : "variableSize");
+                csvTextList.add(line);
+            }
+            Files.write(out,csvTextList,Charset.defaultCharset());
+            JOptionPane.showMessageDialog(
+                    null,
+                    Local.str(
+                            "CameraBag.exportSuccess",
+                            csvTextList.size() - 1),
+                    Local.str("CameraBag.exportDialogTitle"),
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
 
-	public static void main(String args[]) {
-		long time = System.currentTimeMillis();
-		Instant instant = Instant.ofEpochMilli(time);
-		OffsetDateTime odt = OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
-		String str = odt.toString();
-		OffsetDateTime odt2 = OffsetDateTime.parse(str);
-		long time2 = odt2.toInstant().toEpochMilli();
-		System.out.println("t1=" + time + " t2=" + time2 + " " + (new Date(time)).toGMTString());
-	}
+    private static float radiansToDegrees(float r) {
+        return radiansToDegrees((double) r);
+    }
+
+    private static float radiansToDegrees(double r) {
+        return Math.round(Math.toDegrees(r)) % 360;
+    }
+
+    public static void main(String args[]) {
+        long time = System.currentTimeMillis();
+        Instant instant = Instant.ofEpochMilli(time);
+        OffsetDateTime odt = OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
+        String str = odt.toString();
+        OffsetDateTime odt2 = OffsetDateTime.parse(str);
+        long time2 = odt2.toInstant().toEpochMilli();
+        System.out.println("t1=" + time + " t2=" + time2 + " " + (new Date(time)).toGMTString());
+    }
 }
 

@@ -24,16 +24,16 @@ import java.util.ResourceBundle;
 
 public final class Local {
 
-	private static final ResourceBundle BUNDLE = ResourceBundle.getBundle(
-				"com.eteks.digitaltrailscamerabag.ApplicationPlugin",
-				Locale.getDefault(),
-				Local.class.getClassLoader());
-	
-	static final String str(String key, Object...args) {
-		final String str = BUNDLE.getString(key);
-		if (str != null && args.length > 0) {
-			return String.format(str, args);
-		}      
-		return str;
-	}
+    private static final ResourceBundle BUNDLE = ResourceBundle.getBundle(
+                "com.eteks.digitaltrailscamerabag.ApplicationPlugin",
+                Locale.getDefault(),
+                Local.class.getClassLoader());
+
+    static final String str(String key, Object...args) {
+        final String str = BUNDLE.getString(key);
+        if (str != null && args.length > 0) {
+            return String.format(str, args);
+        }
+        return str;
+    }
 }
