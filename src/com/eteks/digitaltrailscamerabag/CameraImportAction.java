@@ -59,10 +59,13 @@ public class CameraImportAction extends PluginAction {
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setSelectedFile(new File("cameras.csv"));
         chooser.setDialogTitle(Local.str("CameraBag.importDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
-        final int returnValue = chooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
+
+        final String csvFilename = this.context.askCsvImportFilename(
+                Local.str("CameraBag.importDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
+
+        if (csvFilename != null) {
             final List<String> lines;
-            Path inPath = Paths.get(chooser.getSelectedFile().getAbsolutePath());
+            Path inPath = Paths.get(csvFilename);
             try {
                 System.out.println("import from: " + inPath.toAbsolutePath());
                 lines = Files.readAllLines(inPath, Charset.defaultCharset());
@@ -107,10 +110,10 @@ public class CameraImportAction extends PluginAction {
                             }
                             else {  // Too messed up to continue
                                 JOptionPane.showMessageDialog(
-                                    null,
-                                    Local.str("CameraBag.importBadSeparators %d", NUMBER_OF_COLUMNS),
-                                    Local.str("CameraBag.importDialogTitle"),
-                                    JOptionPane.ERROR_MESSAGE);
+                                        null,
+                                        Local.str("CameraBag.importBadSeparators %d", NUMBER_OF_COLUMNS),
+                                        Local.str("CameraBag.importDialogTitle"),
+                                        JOptionPane.ERROR_MESSAGE);
                                 break;
                             }
                         }

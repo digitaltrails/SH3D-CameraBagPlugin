@@ -19,7 +19,6 @@
  */
 package com.eteks.digitaltrailscamerabag;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -34,7 +33,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import com.eteks.sweethome3d.model.Camera;
@@ -55,7 +53,7 @@ public class CameraExportAction extends PluginAction {
 
     @Override
     public void execute() {
-        final Home home = context.getHome();
+        final Home home = this.context.getHome();
         try {
             exportCameras(home);
         } catch (IOException e) {
@@ -69,14 +67,13 @@ public class CameraExportAction extends PluginAction {
     }
 
     public void exportCameras(final Home home) throws IOException {
-        final JFileChooser chooser = new JFileChooser(System.getProperty("user.home"));
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setSelectedFile(new File("cameras.csv"));
-        chooser.setDialogTitle(Local.str("CameraBag.exportDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
-        final int returnValue = chooser.showSaveDialog(null);
 
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            Path out = Paths.get(chooser.getSelectedFile().getAbsolutePath());
+        final String csvFilename = this.context.askCsvExportFilename(
+                Local.str("CameraBag.exportDialogTitle") + " " + Local.str("CameraBagPlugin.version"));
+
+        if (csvFilename != null) {
+            Path outPath = Paths.get(csvFilename);
+            System.out.println("export to: " + outPath.toAbsolutePath());
             final List<String> csvTextList = new ArrayList<String>();
             csvTextList.add("#name,x,y,z,pitch,yaw,fov,time,cameraType,viewType,observerSizeType");
             for (Camera storedCamera: home.getStoredCameras()) {
@@ -105,7 +102,7 @@ public class CameraExportAction extends PluginAction {
                                 (isFixedSize ? "fixedSize" : "variableSize");
                 csvTextList.add(line);
             }
-            Files.write(out,csvTextList,Charset.defaultCharset());
+            Files.write(outPath,csvTextList,Charset.defaultCharset());
             JOptionPane.showMessageDialog(
                     null,
                     Local.str(

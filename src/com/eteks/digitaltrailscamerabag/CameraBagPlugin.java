@@ -19,14 +19,90 @@
  */
 package com.eteks.digitaltrailscamerabag;
 
+import java.io.File;
+
+import javax.swing.filechooser.FileFilter;
+
 import com.eteks.sweethome3d.plugin.Plugin;
 import com.eteks.sweethome3d.plugin.PluginAction;
+import com.eteks.sweethome3d.swing.FileContentManager;
+import com.eteks.sweethome3d.viewcontroller.ContentManager;
 
 public class CameraBagPlugin extends Plugin {
+
+    private ContentManager csvContentManager = null;
+    private String lastCsvFilename;
+
+    public CameraBagPlugin() {
+        super();
+    }
+
+    public ContentManager getCsvContentManager() {
+        if (this.csvContentManager == null) {
+            this.csvContentManager = new FileContentManager(this.getUserPreferences()) {
+                private final String CSV_EXTENSION = ".csv";
+                private final FileFilter CSV_FILE_FILTER = new FileFilter() {
+                    @Override
+                    public boolean accept(File file) {
+                        // Accept directories and ZIP files
+                        return file.isDirectory()
+                                || file.getName().toLowerCase().endsWith(CSV_EXTENSION);
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "csv";
+                    }
+                };
+
+                @Override
+                public String getDefaultFileExtension(ContentType contentType) {
+                    if (contentType == ContentType.USER_DEFINED) {
+                        return CSV_EXTENSION;
+                    } else {
+                        return super.getDefaultFileExtension(contentType);
+                    }
+                }
+
+                @Override
+                protected String [] getFileExtensions(ContentType contentType) {
+                    if (contentType == ContentType.USER_DEFINED) {
+                        return new String [] {CSV_EXTENSION};
+                    } else {
+                        return super.getFileExtensions(contentType);
+                    }
+                }
+
+                @Override
+                protected FileFilter [] getFileFilter(ContentType contentType) {
+                    if (contentType == ContentType.USER_DEFINED) {
+                        return new FileFilter [] {CSV_FILE_FILTER};
+                    } else {
+                        return super.getFileFilter(contentType);
+                    }
+                }
+            };
+        }
+        return this.csvContentManager;
+    }
 
     @Override
     public PluginAction[] getActions() {
         return new PluginAction[] { new CameraExportAction(this), new CameraImportAction(this) };
+    }
+
+    public String askCsvImportFilename(final String title) {
+        return this.getCsvContentManager().showOpenDialog(this.getHomeController().getView(),
+                title,
+                ContentManager.ContentType.USER_DEFINED);
+    }
+
+    public String askCsvExportFilename(final String title) {
+        this.lastCsvFilename = this.getCsvContentManager().showSaveDialog(
+                this.getHomeController().getView(),
+                title, 
+                ContentManager.ContentType.USER_DEFINED, this.lastCsvFilename != null ? this.lastCsvFilename : "cameras.csv" );
+        return this.lastCsvFilename;
     }
 
 }
